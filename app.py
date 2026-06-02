@@ -65,7 +65,7 @@ def dashboard():
     )
 
 # Scraper trigger endpoint (to be called by cron-job.org or manually)
-@app.route('/api/check-results', methods=['GET', 'POST'])
+# @app.route('/api/check-results', methods=['GET', 'POST'])
 # def check_results():
 #     try:
 #         # 1. Scrape the Ethiopian Airlines careers page

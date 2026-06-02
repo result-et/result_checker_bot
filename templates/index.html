@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ET Career Scraper Dashboard</title>
+    
+    <!-- Premium Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <link rel="shortcut icon" href="https://corporate.ethiopianairlines.com/ResourcePackages/CorporateWebsiteLayout/assets/Images/Favicon Icon/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="glowing-orb orb-1"></div>
+    <div class="glowing-orb orb-2"></div>
+
+    <div class="dashboard-container">
+        <!-- Header Section -->
+        <header class="dashboard-header">
+            <div class="header-branding">
+                <div class="logo-wrapper">
+                    <i class="fa-solid fa-plane-departure text-gradient"></i>
+                </div>
+                <div class="title-wrapper">
+                    <span class="badge badge-success"><span class="dot-pulse"></span> Scraper Active</span>
+                    <h1>Ethiopian Airlines Results</h1>
+                    <p class="subtitle">Scraper & Bot Monitor for AMT & Pilot Careers</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button id="btn-check-now" class="btn btn-primary">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>Check Page Now</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Grid Section -->
+        <section class="stats-grid">
+            <div class="stat-card card-blue animate-fade-in">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Active Subscribers</h3>
+                    <div class="stat-value" id="val-subscribers">{{ stats.subscribers }}</div>
+                    <p>Telegram users receiving alerts</p>
+                </div>
+            </div>
+
+            <div class="stat-card card-purple animate-fade-in delay-1">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Announcements Indexed</h3>
+                    <div class="stat-value" id="val-total">{{ stats.total_announcements }}</div>
+                    <p>Cumulative postings cached</p>
+                </div>
+            </div>
+
+            <div class="stat-card card-emerald animate-fade-in delay-2">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>AMT & Pilot Alerts</h3>
+                    <div class="stat-value" id="val-matching">{{ stats.matching_announcements }}</div>
+                    <p>Total target alerts broadcasted</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            <!-- Left Side: Table Lists -->
+            <section class="results-panel">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div class="tab-list">
+                            <button class="tab-btn active" data-tab="tab-matching">
+                                <i class="fa-solid fa-star text-emerald"></i>
+                                <span>Matched Results ({{ matching_announcements|length }})</span>
+                            </button>
+                            <button class="tab-btn" data-tab="tab-all">
+                                <i class="fa-solid fa-list-ul text-blue"></i>
+                                <span>All Scraping History ({{ latest_announcements|length }})</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-body">
+                        <!-- Tab: Matched Results -->
+                        <div id="tab-matching" class="tab-content active">
+                            {% if matching_announcements %}
+                                <div class="table-container">
+                                    <table class="dashboard-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Position</th>
+                                                <th>Location</th>
+                                                <th>Announcement Type</th>
+                                                <th>Scraped Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for ann in matching_announcements %}
+                                                <tr class="row-highlight">
+                                                    <td class="col-position">
+                                                        <i class="fa-solid fa-circle-check text-emerald"></i>
+                                                        <strong>{{ ann.position }}</strong>
+                                                    </td>
+                                                    <td>{{ ann.location }}</td>
+                                                    <td>
+                                                        <span class="badge-type type-interview">{{ ann.announcement_type }}</span>
+                                                    </td>
+                                                    <td class="col-date">{{ ann.scraped_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="empty-state">
+                                    <div class="empty-icon text-emerald">
+                                        <i class="fa-solid fa-bullseye"></i>
+                                    </div>
+                                    <h3>No Matching Results Yet</h3>
+                                    <p>The bot is listening. When an announcement matching AMT or Pilot roles is posted on Ethiopian Airlines, it will appear here and be broadcasted immediately.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Tab: All History -->
+                        <div id="tab-all" class="tab-content">
+                            {% if latest_announcements %}
+                                <div class="table-container">
+                                    <table class="dashboard-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Position</th>
+                                                <th>Location</th>
+                                                <th>Announcement Type</th>
+                                                <th>Scraped Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for ann in latest_announcements %}
+                                                <tr>
+                                                    <td class="col-position">
+                                                        {% if ann.is_matching %}
+                                                            <i class="fa-solid fa-star text-emerald animate-pulse"></i>
+                                                        {% else %}
+                                                            <i class="fa-solid fa-circle text-muted"></i>
+                                                        {% endif %}
+                                                        {{ ann.position }}
+                                                    </td>
+                                                    <td>{{ ann.location }}</td>
+                                                    <td>
+                                                        <span class="badge-type">{{ ann.announcement_type }}</span>
+                                                    </td>
+                                                    <td class="col-date">{{ ann.scraped_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="empty-state">
+                                    <div class="empty-icon text-blue">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </div>
+                                    <h3>Database is Empty</h3>
+                                    <p>Click "Check Page Now" or trigger `/api/check-results` to perform the first scrape.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Config and Logs -->
+            <section class="side-panel">
+                <!-- System Config Info -->
+                <div class="panel-card mb-4">
+                    <div class="panel-card-header">
+                        <h2><i class="fa-solid fa-circle-info text-blue"></i> Telegram Integration</h2>
+                    </div>
+                    <div class="panel-card-body">
+                        <div class="bot-info-card">
+                            <div class="bot-avatar">
+                                <i class="fa-brands fa-telegram"></i>
+                            </div>
+                            <div class="bot-details">
+                                <h4>@{{ bot_username }}</h4>
+                                <p>Ethiopian Airlines Careers Bot</p>
+                            </div>
+                        </div>
+                        
+                        <div class="instructions">
+                            <h3>Setup Instructions</h3>
+                            <ol>
+                                <li>Open Telegram and search for the bot using its token or username.</li>
+                                <li>Send the <code>/start</code> command to subscribe to notifications.</li>
+                                <li>Check the active subscriber count above to confirm subscription.</li>
+                            </ol>
+                            
+                            <h3>Render Free Tier & Cron Setup</h3>
+                            <p>To automate scraping and keep this app from sleeping, configure a cron job on <a href="https://cron-job.org" target="_blank">cron-job.org</a>:</p>
+                            <div class="code-box">
+                                <strong>Request URL:</strong>
+                                <code>https://&lt;your-render-app&gt;.onrender.com/api/check-results</code>
+                                <strong>Interval:</strong> Every 10 or 15 minutes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="toast hidden">
+        <div class="toast-content">
+            <i class="fa-solid fa-circle-check toast-icon"></i>
+            <div class="toast-message">
+                <strong id="toast-title">Scraper Status</strong>
+                <p id="toast-body">Check triggered successfully.</p>
+            </div>
+        </div>
+        <button class="toast-close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- AJAX Trigger Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab switching logic
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.getAttribute('data-tab');
+                    
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    btn.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // Scraper trigger ajax logic
+            const checkBtn = document.getElementById('btn-check-now');
+            const toast = document.getElementById('toast');
+            const toastIcon = toast.querySelector('.toast-icon');
+            const toastTitle = document.getElementById('toast-title');
+            const toastBody = document.getElementById('toast-body');
+            const toastClose = toast.querySelector('.toast-close');
+            
+            toastClose.addEventListener('click', () => toast.classList.add('hidden'));
+
+            checkBtn.addEventListener('click', () => {
+                checkBtn.disabled = true;
+                const originalContent = checkBtn.innerHTML;
+                checkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking page...';
+                
+                fetch('/api/check-results', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Success toast
+                        toast.classList.remove('hidden', 'toast-error');
+                        toast.classList.add('toast-success');
+                        toastIcon.className = 'fa-solid fa-circle-check toast-icon text-emerald';
+                        toastTitle.innerText = 'Checking Complete';
+                        
+                        let msg = `Scraped ${data.scraped_total} jobs. `;
+                        if (data.new_added > 0) {
+                            msg += `Added ${data.new_added} new items, sent ${data.telegram_notifications_sent} Telegram notifications.`;
+                        } else {
+                            msg += `No new announcements found.`;
+                        }
+                        toastBody.innerText = msg;
+                        
+                        // Update UI Stats dynamically
+                        document.getElementById('val-total').innerText = parseInt(document.getElementById('val-total').innerText) + data.new_added;
+                        document.getElementById('val-matching').innerText = parseInt(document.getElementById('val-matching').innerText) + data.matching_filtered;
+
+                        // Reload page to display new database items after 2 seconds
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2500);
+                    } else {
+                        throw new Error(data.message || 'Scraper failed');
+                    }
+                })
+                .catch(error => {
+                    // Error toast
+                    toast.classList.remove('hidden', 'toast-success');
+                    toast.classList.add('toast-error');
+                    toastIcon.className = 'fa-solid fa-triangle-exclamation toast-icon text-error';
+                    toastTitle.innerText = 'Scraper Error';
+                    toastBody.innerText = error.message;
+                })
+                .finally(() => {
+                    checkBtn.disabled = false;
+                    checkBtn.innerHTML = originalContent;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

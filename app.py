@@ -66,23 +66,80 @@ def dashboard():
 
 # Scraper trigger endpoint (to be called by cron-job.org or manually)
 @app.route('/api/check-results', methods=['GET', 'POST'])
-def check_results():
+# def check_results():
+#     try:
+#         # 1. Scrape the Ethiopian Airlines careers page
+#         scraped_items = scraper.scrape_announcements()
+        
+#         new_count = 0
+#         matching_count = 0
+#         sent_notifications = 0
+#         new_items_list = []
+        
+#         # 2. Process each scraped announcement
+#         for item in scraped_items:
+#             item_id = item['id']
+            
+#             # Check if this announcement is new
+#             if database.is_announcement_new(item_id):
+#                 # Save to database
+#                 database.add_announcement(
+#                     announcement_id=item_id,
+#                     position=item['position'],
+#                     location=item['location'],
+#                     announcement_type=item['announcement_type'],
+#                     is_matching=item['is_matching']
+#                 )
+                
+#                 new_count += 1
+#                 new_items_list.append(item)
+                
+#                 # If matching AMT/Pilot, broadcast to Telegram subscribers
+#                 if item['is_matching']:
+#                     matching_count += 1
+#                     # Send alert
+#                     sent_count = bot.broadcast_announcement(item)
+#                     sent_notifications += sent_count
+                    
+#         return jsonify({
+#             "status": "success",
+#             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+#             "scraped_total": len(scraped_items),
+#             "new_added": new_count,
+#             "matching_filtered": matching_count,
+#             "telegram_notifications_sent": sent_notifications,
+#             "new_announcements": [
+#                 {
+#                     "position": item['position'],
+#                     "location": item['location'],
+#                     "type": item['announcement_type'],
+#                     "is_matching": item['is_matching']
+#                 } for item in new_items_list
+#             ]
+#         }), 200
+        
+#     except Exception as e:
+#         print(f"Error during scheduled run: {e}")
+#         return jsonify({
+#             "status": "error",
+#             "message": str(e),
+#             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+#         }), 500
+
+# Place this helper function outside your route in app.py
+def run_scraper_background():
+    """Handles the heavy lifting of scraping outside the request timeline."""
     try:
-        # 1. Scrape the Ethiopian Airlines careers page
+        print("Background scraping job started...")
         scraped_items = scraper.scrape_announcements()
         
         new_count = 0
         matching_count = 0
         sent_notifications = 0
-        new_items_list = []
         
-        # 2. Process each scraped announcement
         for item in scraped_items:
             item_id = item['id']
-            
-            # Check if this announcement is new
             if database.is_announcement_new(item_id):
-                # Save to database
                 database.add_announcement(
                     announcement_id=item_id,
                     position=item['position'],
@@ -90,36 +147,32 @@ def check_results():
                     announcement_type=item['announcement_type'],
                     is_matching=item['is_matching']
                 )
-                
                 new_count += 1
-                new_items_list.append(item)
                 
-                # If matching AMT/Pilot, broadcast to Telegram subscribers
                 if item['is_matching']:
                     matching_count += 1
-                    # Send alert
                     sent_count = bot.broadcast_announcement(item)
                     sent_notifications += sent_count
                     
+        print(f"Background scraping completed successfully. Added: {new_count}, Notified: {sent_notifications}")
+    except Exception as e:
+        print(f"Error during background scheduled run: {e}")
+
+# Update your endpoint to trigger the thread
+@app.route('/api/check-results', methods=['GET', 'POST'])
+def check_results():
+    try:
+        # Spin up a background daemon thread to do the scraping work
+        threading.Thread(target=run_scraper_background, daemon=True).start()
+        
+        # Instantly return a 202 Accepted response so Gunicorn doesn't time out
         return jsonify({
-            "status": "success",
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "scraped_total": len(scraped_items),
-            "new_added": new_count,
-            "matching_filtered": matching_count,
-            "telegram_notifications_sent": sent_notifications,
-            "new_announcements": [
-                {
-                    "position": item['position'],
-                    "location": item['location'],
-                    "type": item['announcement_type'],
-                    "is_matching": item['is_matching']
-                } for item in new_items_list
-            ]
-        }), 200
+            "status": "accepted",
+            "message": "Scraping job triggered in the background.",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }), 202
         
     except Exception as e:
-        print(f"Error during scheduled run: {e}")
         return jsonify({
             "status": "error",
             "message": str(e),

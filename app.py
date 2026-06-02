@@ -153,6 +153,7 @@ def setup_bot():
 if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
     setup_bot()
     # Start database pre-population in a background thread
+    threading.Thread(target=setup_bot, daemon=True).start()
     # threading.Thread(target=pre_populate_db, daemon=True).start()
 
 if __name__ == '__main__':

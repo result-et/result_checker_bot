@@ -14,24 +14,24 @@ app = Flask(__name__)
 # Ensure database tables exist
 database.init_db()
 
-# def pre_populate_db():
-#     """Checks if the announcements table is empty on startup and populates it if needed."""
-#     try:
-#         stats = database.get_stats()
-#         if stats.get('total_announcements', 0) == 0:
-#             print("Announcements cache is empty. Pre-populating historical data...")
-#             scraped_items = scraper.scrape_announcements()
-#             for item in scraped_items:
-#                 database.add_announcement(
-#                     announcement_id=item['id'],
-#                     position=item['position'],
-#                     location=item['location'],
-#                     announcement_type=item['announcement_type'],
-#                     is_matching=item['is_matching']
-#                 )
-#             print(f"Successfully pre-populated database with {len(scraped_items)} announcements.")
-#     except Exception as e:
-#         print(f"Error pre-populating database on startup: {e}")
+def pre_populate_db():
+    """Checks if the announcements table is empty on startup and populates it if needed."""
+    try:
+        stats = database.get_stats()
+        if stats.get('total_announcements', 0) == 0:
+            print("Announcements cache is empty. Pre-populating historical data...")
+            scraped_items = scraper.scrape_announcements()
+            for item in scraped_items:
+                database.add_announcement(
+                    announcement_id=item['id'],
+                    position=item['position'],
+                    location=item['location'],
+                    announcement_type=item['announcement_type'],
+                    is_matching=item['is_matching']
+                )
+            print(f"Successfully pre-populated database with {len(scraped_items)} announcements.")
+    except Exception as e:
+        print(f"Error pre-populating database on startup: {e}")
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
@@ -151,10 +151,10 @@ def setup_bot():
 # Initialize bot configuration when starting Flask process
 # Flask debug mode runs two processes (autoreloader). We run the bot register only once.
 if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
-    # setup_bot()
+    setup_bot()
     # Start database pre-population in a background thread
-    threading.Thread(target=setup_bot, daemon=True).start()
-    # threading.Thread(target=pre_populate_db, daemon=True).start()
+    # threading.Thread(target=setup_bot, daemon=True).start()
+    threading.Thread(target=pre_populate_db, daemon=True).start()
 
 if __name__ == '__main__':
     # Run locally

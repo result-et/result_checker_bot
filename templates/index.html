@@ -277,29 +277,33 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'success') {
+                    if (data.status === 'success' || data.status === 'accepted') {
                         // Success toast
                         toast.classList.remove('hidden', 'toast-error');
                         toast.classList.add('toast-success');
                         toastIcon.className = 'fa-solid fa-circle-check toast-icon text-emerald';
-                        toastTitle.innerText = 'Checking Complete';
+                        toastTitle.innerText = data.status === 'accepted' ? 'Checking Started' : 'Checking Complete';
                         
-                        let msg = `Scraped ${data.scraped_total} jobs. `;
-                        if (data.new_added > 0) {
-                            msg += `Added ${data.new_added} new items, sent ${data.telegram_notifications_sent} Telegram notifications.`;
-                        } else {
-                            msg += `No new announcements found.`;
+                        let msg = data.message || `Scraped ${data.scraped_total} jobs. `;
+                        if (data.new_added !== undefined) {
+                            if (data.new_added > 0) {
+                                msg += `Added ${data.new_added} new items, sent ${data.telegram_notifications_sent} Telegram notifications.`;
+                            } else {
+                                msg += `No new announcements found.`;
+                            }
                         }
                         toastBody.innerText = msg;
                         
-                        // Update UI Stats dynamically
-                        document.getElementById('val-total').innerText = parseInt(document.getElementById('val-total').innerText) + data.new_added;
-                        document.getElementById('val-matching').innerText = parseInt(document.getElementById('val-matching').innerText) + data.matching_filtered;
+                        if (data.new_added !== undefined) {
+                            // Update UI Stats dynamically
+                            document.getElementById('val-total').innerText = parseInt(document.getElementById('val-total').innerText) + data.new_added;
+                            document.getElementById('val-matching').innerText = parseInt(document.getElementById('val-matching').innerText) + data.matching_filtered;
+                        }
 
-                        // Reload page to display new database items after 2 seconds
+                        // Reload page to display new database items after 3 seconds
                         setTimeout(() => {
                             window.location.reload();
-                        }, 2500);
+                        }, 3000);
                     } else {
                         throw new Error(data.message || 'Scraper failed');
                     }

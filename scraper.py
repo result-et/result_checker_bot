@@ -100,7 +100,7 @@ def scrape_announcements():
             "id": announcement_id,
             "position": position,
             "location": location,
-            "announcement": announcement,
+            "announcement_type": announcement,
             "is_matching": is_target_position(position)
         })
 

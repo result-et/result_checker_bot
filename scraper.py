@@ -40,7 +40,7 @@ def scrape_announcements():
       - id (SHA-256 hash)
       - position (str)
       - location (str)
-      - announcement (str)
+      - announcement_type (str)
       - is_matching (bool)
     """
     headers = {"User-Agent": USER_AGENT}

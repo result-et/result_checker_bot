@@ -89,7 +89,7 @@ def check_results():
 def run_scraper_background():
     """Handles the heavy lifting of scraping outside the request timeline."""
     try:
-        print("Background scraping job started...")
+        print("Background scraping job started...", flush=True)
         scraped_items = scraper.scrape_announcements()
         
         new_count = 0

@@ -127,6 +127,22 @@ def is_announcement_new(announcement_id):
         cursor.close()
         conn.close()
 
+# Fetch all announcement IDs at once
+def get_existing_announcement_ids():
+    """Returns a set containing all announcement IDs."""
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT id FROM announcements")
+        return {row[0] for row in cursor.fetchall()}
+    except Exception as e:
+        print(f"Error fetching announcement IDs: {e}")
+        return set()
+    finally:
+        cursor.close()
+        conn.close()
+
 def add_announcement(announcement_id, position, location, announcement_type, is_matching):
     """Adds a new announcement to the tracking database."""
     conn = get_connection()

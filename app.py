@@ -95,15 +95,14 @@ def run_scraper_background():
         new_count = 0
         matching_count = 0
         sent_notifications = 0
-        
+
+        # Fetch all existing announcement IDs once
+        existing_ids = database.get_existing_announcement_ids()
+
         for item in scraped_items:
             item_id = item['id']
-            if database.is_announcement_new(item_id):
-                if item['is_matching']:
-                    matching_count += 1
-                    sent_count = bot.broadcast_announcement(item)
-                    sent_notifications += sent_count
 
+            if item_id not in existing_ids:
                 database.add_announcement(
                     announcement_id=item_id,
                     position=item['position'],
@@ -111,7 +110,36 @@ def run_scraper_background():
                     announcement_type=item['announcement_type'],
                     is_matching=item['is_matching']
                 )
+
+                # Keep the in-memory set updated so duplicates in the same run
+                # are not processed twice
+                existing_ids.add(item_id)
+
                 new_count += 1
+
+                if item['is_matching']:
+                    matching_count += 1
+                    sent_count = bot.broadcast_announcement(item)
+                    sent_notifications += sent_count
+                    
+        
+        # =============================================
+        # for item in scraped_items:
+        #     item_id = item['id']
+        #     if database.is_announcement_new(item_id):
+        #         if item['is_matching']:
+        #             matching_count += 1
+        #             sent_count = bot.broadcast_announcement(item)
+        #             sent_notifications += sent_count
+
+        #         database.add_announcement(
+        #             announcement_id=item_id,
+        #             position=item['position'],
+        #             location=item['location'],
+        #             announcement_type=item['announcement_type'],
+        #             is_matching=item['is_matching']
+        #         )
+        #         new_count += 1
         
         print(f"Background scraping completed successfully. Added: {new_count}, Notified: {sent_notifications}", flush=True)
     except Exception as e:
